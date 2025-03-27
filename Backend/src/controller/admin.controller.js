@@ -5,12 +5,13 @@ import cloudinary from "../lib/cloudinary.js";
 // Helper function for cloudinary uploads
 export const uploadToCloudinary = async (file) => {
     try {
-        const result = await cloudinary.v2.uploader.upload(file.tempFilePath, {
-            resource_type: "auto",  // Automatically detect the resource type (image/audio)
-        });
-        return result.secure_url;  // Return the secure URL after upload
+        const result = await cloudinary.uploader.upload(file.tempFilePath, {
+			resource_type: "auto",
+		});
+
+        return result.secure_url;
     } catch (error) {
-        console.log("Error in uploadToCloudinary", error);
+        console.error("Error in uploadToCloudinary:", error);
         throw new Error("Error uploading to Cloudinary");
     }
 };
@@ -22,10 +23,10 @@ export const createSong = async (req, res, next) => {
         if (!req.files || !req.files.audioFile || !req.files.imageFile) {
             return res.status(400).json({ message: "Please upload all files" });
         }
-
+        
         const { title, artist, albumId, duration } = req.body;
-
         // Extract audioFile and imageFile from the request
+       
         const audioFile = req.files.audioFile;
         const imageFile = req.files.imageFile;
 
@@ -110,7 +111,7 @@ export const createAlbum=async(req,res,next)=>{
 export const deleteAlbum=async(req,res,next)=>{
     try {
         const {id}=req.params
-
+        console.log(id);
         await Song.deleteMany({albumId:id});
         await Album.findByIdAndDelete(id);
 
@@ -123,5 +124,16 @@ export const deleteAlbum=async(req,res,next)=>{
 
 //check admin
 export const checkAdmin=async(req,res,next)=>{
-    res.status(200).json({admin:true});
+    const { userEmail } = req.params;  // Extract from query instead of params
+    console.log("email:", userEmail);
+
+    if (!userEmail) {
+        return res.status(400).json({ message: "Bad Request - Missing user email" });
+    }
+    console.log(userEmail);
+    if (process.env.ADMIN_EMAIL === userEmail) {
+        res.status(200).json({ admin: true });
+    } else {
+        res.status(401).json({ admin: false });
+    }
 }

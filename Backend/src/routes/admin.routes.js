@@ -5,13 +5,12 @@ import {createSong,deleteSong,createAlbum,deleteAlbum,checkAdmin}  from '../cont
 const router = express.Router();
 
 //this will implement in the following routes && slighlty optimize clean code
-router.use(protectRoute,requireAdmin);
+router.get('/check/:userEmail', checkAdmin);
 
-router.get('/check',checkAdmin)
 
-router.post('/songs', createSong);
-router.delete('/songs/:id',deleteSong)
-router.post('/albums',createAlbum);
-router.delete('/albums/:id',deleteAlbum)
+router.post('/songs/:userEmail',protectRoute,requireAdmin, createSong);
+router.delete('/songs/:id',protectRoute,requireAdmin,deleteSong)
+router.post('/albums/:userEmail',protectRoute,requireAdmin,createAlbum);
+router.delete('/albums/:userEmail/:id', protectRoute, requireAdmin, deleteAlbum);
 
 export default router;

@@ -3,11 +3,11 @@ import { getAllSongs,getFeaturedSong,getTrendingSongs,getMadeForYouSongs } from 
 import { protectRoute,requireAdmin } from "../middleware/auth.middleware.js";
 
 const router=express.Router();
-router.use(protectRoute,requireAdmin);
+router.use(protectRoute);
 
 router.get('/',getAllSongs);
 router.get('/featured',getFeaturedSong);
-router.get('/mage-for-you',getMadeForYouSongs);
+router.get('/made-for-you',getMadeForYouSongs);
 router.get('/trending',getTrendingSongs);
 
 

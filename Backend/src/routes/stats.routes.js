@@ -4,6 +4,6 @@ import { protectRoute, requireAdmin } from "../middleware/auth.middleware.js";
 
 const router=express.Router();
 
-router.get('/',protectRoute,requireAdmin,getStats)
+router.get('/:userEmail',protectRoute,requireAdmin,getStats)
 
 export default router

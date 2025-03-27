@@ -14,11 +14,16 @@ import albumRoutes from './routes/album.routes.js';
 import statsRoutes from './routes/stats.routes.js';
 
 import connectDB  from './lib/db.js';
+import { createServer } from 'http';
+import { initializeSocket } from './lib/socket.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const httpServer=createServer(app);
+initializeSocket(httpServer);
 
 // Middleware to parse JSON requests
 app.use(express.json());
@@ -56,7 +61,7 @@ app.use((err,req,res,next)=>{
 })
 
 // Start the server
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
     console.log('Connecting to database...');
     connectDB()

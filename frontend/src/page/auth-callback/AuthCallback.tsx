@@ -15,13 +15,13 @@ const AuthCallback = () => {
       if(!isLoaded||!user||syncAttempted.current) return;
       try {
         syncAttempted.current=true
-        await axiosInstane.post("/api/auth/callback",{
+        const response=await axiosInstane.post("/api/auth/callback",{
           id:user.id,
           firstName:user.firstName,
           lastName:user.lastName,
           imageUrl:user.imageUrl
         })
-      
+        window.localStorage.setItem("token",response.data.token);
       } catch (error) {
         console.log("Error in auth callback",error)
       }
