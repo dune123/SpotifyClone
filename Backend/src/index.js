@@ -4,6 +4,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import fileUpload from 'express-fileupload';
 import cors from "cors"
+import cron from "node-cron"
 
 // Router imports
 import userRoutes from './routes/user.routes.js';
@@ -54,6 +55,23 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/songs', songRoutes);
 app.use('/api/albums', albumRoutes);
 app.use('/api/stats', statsRoutes);
+
+// cron jobs
+const tempDir = path.join(process.cwd(), "tmp");
+cron.schedule("0 * * * *", () => {
+	if (fs.existsSync(tempDir)) {
+		fs.readdir(tempDir, (err, files) => {
+			if (err) {
+				console.log("error", err);
+				return;
+			}
+			for (const file of files) {
+				fs.unlink(path.join(tempDir, file), (err) => {});
+			}
+		});
+	}
+});
+
 
 //error handlers
 app.use((err,req,res,next)=>{

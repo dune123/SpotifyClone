@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Music } from "lucide-react"
 import SongTable from "./SongTable"
 import AddSongDialog from "./AddSongDialog"

@@ -7,6 +7,7 @@ import ChatPage from "./page/chat/ChatPage";
 import AlbumPage from "./page/album/AlbumPage";
 import AdminPage from "./page/admin/AdminPage";
 import { Toaster } from "react-hot-toast";
+import NotFoundPage from "./page/404/NotFoundPage";
 
 const App = () => {
   //token =>
@@ -23,6 +24,7 @@ const App = () => {
         <Route path="/" element={<HomePage/>}/>
         <Route path="/chat" element={<ChatPage/>}/>
         <Route path="/albums/:albumId" element={<AlbumPage/>}/>
+        <Route path='*' element={<NotFoundPage />} />
       </Route>
     </Routes>
     <Toaster />

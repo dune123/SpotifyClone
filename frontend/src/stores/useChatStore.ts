@@ -4,6 +4,13 @@ import { Message, User } from "@/types";
 import { io } from "socket.io-client";
 import { axiosInstane } from "@/lib/axios";
 
+interface AuthState {
+	userId: string | null;
+	token: string | null;
+  }
+  
+  
+
 // Define the structure for your store
 interface ChatStore {
     users: User[];
@@ -17,9 +24,10 @@ interface ChatStore {
 	userActivities: Map<string, string>;
 	messages: Message[];
 	selectedUser: User | null;
-    setAuth: (authDetails: { userId: string | null, token: string | null }) => void;
+	auth: AuthState;  // Add this line
+	setAuth: (authDetails: AuthState) => void;
 
-	fetchUsers: () => Promise<void>;
+	fetchUsers: (userId:string) => Promise<void>;
 	initSocket: (userId: string) => void;
 	disconnectSocket: () => void;
 	sendMessage: (receiverId: string, senderId: string, content: string) => void;
@@ -47,8 +55,17 @@ export const useChatStore = create<ChatStore>((set,get) => ({
 	userActivities: new Map(),
 	messages: [],
 	selectedUser: null,
+	auth: {
+		userId: null,
+		token: null
+	  },
     // Action to set the auth details in the store
-    setAuth: ({ userId, token }) => set({ userId, token }),
+    setAuth: ({ userId, token }) => set({ 
+		auth: { 
+		  userId: userId ?? null, 
+		  token: token ?? null 
+		} 
+	  }),
 
     setSelectedUser: (user) => set({ selectedUser: user }),
 
@@ -91,7 +108,17 @@ export const useChatStore = create<ChatStore>((set,get) => ({
 			});
 
 			socket.on("activities", (activities: [string, string][]) => {
+				console.log("Received activities:", activities); // Debugging log
 				set({ userActivities: new Map(activities) });
+			});
+			
+			socket.on("activity_updated", ({ userId, activity }) => {
+				console.log(`Activity updated for ${userId}: ${activity}`); // Debugging log
+				set((state) => {
+					const newActivities = new Map(state.userActivities);
+					newActivities.set(userId, activity);
+					return { userActivities: newActivities };
+				});
 			});
 
 			socket.on("user_connected", (userId: string) => {

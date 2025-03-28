@@ -14,12 +14,16 @@ const AdminPage = () => {
     const {isAdmin,isLoading}=useAuthStore()
 	const {fetchAlbums,fetchSongs,fetchStats}=useMusicStore()
 	const { user } = useUser();
+	const userEmail=user?.emailAddresses[0].emailAddress
 
 	useEffect(()=>{
 		fetchAlbums();
 		fetchSongs();
 		if (user?.emailAddresses[0]?.emailAddress) {
-            fetchStats(user.emailAddresses[0].emailAddress);
+            //fetchStats(user.emailAddresses[0].emailAddress);
+			if (userEmail) {  // Only call if not empty string
+				fetchStats(userEmail);
+			}
         }
 	},[fetchAlbums,fetchSongs,fetchStats])
 

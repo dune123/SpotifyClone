@@ -1,11 +1,7 @@
 import { axiosInstane } from '@/lib/axios'
 import {create} from 'zustand'
 import { Album, Song, Stats } from "@/types";
-import { findPackageJSON } from 'module';
-import { error } from 'console';
-import { useUser } from '@clerk/clerk-react';
-import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 
 interface MusicStore{
@@ -21,54 +17,127 @@ interface MusicStore{
 
 
 	fetchAlbums: () => Promise<void>;
-    fetchAlbumsById: (id:string)=> Promise<void>;
+    fetchAlbumById: (id: string) => Promise<void>;
     fetchFeaturedSongs:()=>Promise<void>;
     fetchMadeForYouSongs:()=>Promise<void>;
     fetchTrendingSongs:()=>Promise<void>;
-    fetchStats:()=>Promise<void>;
+    fetchStats: (userEmail:string) => Promise<void>;
     fetchSongs:()=>Promise<void>;
     deleteSong:(id:string)=>Promise<void>;
-    deleteAlbum:(id:string)=>Promise<void>
+    deleteAlbum:(id:string,userEmail?:string)=>Promise<void>
 }
 
-export const useMusicStore=create((set)=>({
-    albums:[],
-    songs:[],
-    isLoading:false,
-    error:null,
-    madeForYouSongs:[],
-    featuredSongs:[],
-    trendingSongs:[],
-    stats:{
-        totalSongs:0,
-        totalAlbums:0,
-        totalUsers:0,
-        totalArtists:0
+export const useMusicStore = create<MusicStore>()((set) => ({
+    // State properties
+    albums: [],
+    songs: [],
+    isLoading: false,
+    error: null,
+    currentAlbum: null,
+    madeForYouSongs: [],
+    featuredSongs: [],
+    trendingSongs: [],
+    stats: {
+        totalSongs: 0,
+        totalAlbums: 0,
+        totalUsers: 0,
+        totalArtists: 0
     },
-    isSongsLoading:false, 
-    isStatsLoading:false,
+    isSongsLoading: false,
+    isStatsLoading: false,
 
-    deleteSong:async(id:any)=>{
-        set({})
-        try{
-            await axiosInstane.delete(`/api/admin/songs/${id}`)
-            set((state:any)=>({
-                songs:state.songs.filter((song:any)=>song._id!==id)
-            }))
-
-            toast.success("Song deleted successfully")
-        }
-        catch(error:any){
-            console.log("Error in deleting Song",error)
-            toast.error("Error in deleting Song")
-            set({error:error.message})
-        }
-        finally{
-            set({isLoading:false})
+    // Action implementations (all methods from interface)
+    fetchAlbums: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstane.get<Album[]>("/api/albums");
+            set({ albums: response.data, isLoading: false });
+        } catch (error: any) {
+            set({ error: error.response?.data?.message || error.message, isLoading: false });
         }
     },
-    deleteAlbum:async(id:any,userEmail:any)=>{
-        set({})
+
+    fetchAlbumById: async (id: string) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstane.get<Album>(`/api/albums/${id}`);
+            set({ currentAlbum: response.data, isLoading: false });
+        } catch (error: any) {
+            set({ error: error.response?.data?.message || error.message, isLoading: false });
+        }
+    },
+
+    fetchFeaturedSongs: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstane.get<Song[]>("/api/songs/featured");
+            set({ featuredSongs: response.data, isLoading: false });
+        } catch (error: any) {
+            set({ error: error.response?.data?.message || error.message, isLoading: false });
+        }
+    },
+
+    fetchMadeForYouSongs: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstane.get<Song[]>("/api/songs/made-for-you");
+            set({ madeForYouSongs: response.data, isLoading: false });
+        } catch (error: any) {
+            set({ error: error.response?.data?.message || error.message, isLoading: false });
+        }
+    },
+
+    fetchTrendingSongs: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstane.get<Song[]>("/api/songs/trending");
+            set({ trendingSongs: response.data, isLoading: false });
+        } catch (error: any) {
+            set({ error: error.response?.data?.message || error.message, isLoading: false });
+        }
+    },
+
+    fetchStats: async (userEmail: string) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstane.get<Stats>(`/api/stats/${userEmail}`);
+            set({ stats: response.data, isLoading: false});
+        } catch (error: any) {
+            set({ 
+                error: error.response?.data?.message || error.message,
+                isLoading: false,
+            });
+        }
+    },
+
+    fetchSongs: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstane.get<Song[]>("/api/songs");
+            set({ songs: response.data, isLoading: false });
+        } catch (error: any) {
+            set({ error: error.response?.data?.message || error.message, isLoading: false });
+        }
+    },
+
+    deleteSong: async (id: string) => {
+        set({ isLoading: true });
+        try {
+            await axiosInstane.delete(`/api/admin/songs/${id}`);
+            set((state) => ({
+                songs: state.songs.filter((song) => song._id !== id),
+                isLoading: false
+            }));
+            toast.success("Song deleted successfully");
+        } catch (error: any) {
+            console.log("Error deleting song:", error);
+            toast.error("Error deleting song");
+            set({ error: error.message, isLoading: false });
+        }
+    },
+
+    deleteAlbum: async (id: string, userEmail?: string) => {
+        set({ isLoading: true });
         try {
             await axiosInstane.delete(`/api/admin/albums/${userEmail}/${id}`);
             set((state:any)=>({
@@ -87,106 +156,4 @@ export const useMusicStore=create((set)=>({
             set({isLoading:false})
         }
     }
-    ,
-    fetchSongs:async()=>{
-        try {
-            const response=await axiosInstane.get("/api/songs");
-            set({songs:response.data});
-
-        } catch (error:any) {
-            set({error:error.message})
-        }
-        finally{
-            set({isLoading:false})
-        }
-    },
-    fetchStats: async (userEmail: string) => {
-        set({ isLoading: true, error: null });
-    
-        try {
-            const response = await axiosInstane.get(`/api/stats/${userEmail}`);
-            set({ stats: response.data });
-        } catch (error: any) {
-            console.error("Error fetching stats:", error);
-            set({ error: error.message });
-        } finally {
-            set({ isLoading: false });
-        }
-    },
-    fetchAlbums: async()=>{
-        // data fetch Logic ...
-        set({
-            isLoading:true,
-            error:null
-        })
-
-        try {
-            const response=await axiosInstane.get("/api/albums");
-
-            set({albums:response.data})
-
-        } catch (error:any) {
-            set({error:error.response.data.message});
-        }
-        finally{
-            set({isLoading:false})
-        }
-    },
-
-    fetchAlbumById:async(id:string)=>{
-        set({isLoading:true,error:null});
-
-        try {
-            const response=await axiosInstane.get(`/api/albums/${id}`)
-            set({currentAlbum:response.data});
-
-
-        } catch (error:any) {
-            set({error:error.response.data.message});
-        }
-        finally{
-            set({isLoading:false})
-        }
-    },
-
-    fetchFeaturedSongs:async()=>{
-        set({isLoading:true,error:null})
-        try {
-            const response=await axiosInstane.get("/api/songs/featured")
-
-            set({featuredSongs:response.data})
-        } catch (error:any) {
-            set({error:error.response.data.message})
-        }
-        finally{
-            set({isLoading:false})
-        }
-    },
-    fetchMadeForYouSongs:async()=>{
-        set({isLoading:true,error:null})
-        try {
-            const reponse=await axiosInstane.get("/api/songs/made-for-you");
-
-            set({madeForYouSongs:reponse.data})
-        } catch (error:any) {
-            set({error:error.response.data.message})
-        }
-        finally{
-            set({isLoading:false})
-        }
-    },
-    fetchTrendingSongs:async()=>{
-        set({isLoading:true,error:null})
-        try {
-            const response=await axiosInstane.get("/api/songs/trending");
-
-            set({trendingSongs:response.data})
-        } catch (error:any) {
-            set({error:error.response.data.message})
-        }
-        finally{
-            set({isLoading:false})
-        }
-    }
-}))
-
+}));

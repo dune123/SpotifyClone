@@ -31,10 +31,13 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             try {
                 updateApiToken(token);
                 // Set the token and userId in Zustand store
-                setAuth({ userId, token });
+                setAuth({ 
+                    userId:userId??null,  // string | null
+                    token    // string | null
+                  });
 
-                if(token){
-                    await checkAdminStatus(userEmail);
+                if(token&&userEmail){
+                    await checkAdminStatus(userEmail.toString());
 
                     // init socket
 					if (userId) initSocket(userId);

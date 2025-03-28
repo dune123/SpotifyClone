@@ -6,7 +6,7 @@ interface AuthStore {
 	isLoading: boolean;
 	error: string | null;
 
-	checkAdminStatus: (userEmail: string | undefined) => Promise<void>;
+	checkAdminStatus: (userEmail: string) => Promise<void>;
 	reset: () => void;
 }
 
@@ -15,7 +15,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 	isLoading: false,
 	error: null,
 
-	checkAdminStatus: async (userEmail) => {
+	checkAdminStatus: async (userEmail:string) => {
 		if (!userEmail) return; // Prevent API call if no email
 		set({ isLoading: true, error: null });
 	
